@@ -1,9 +1,8 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt'); 
 const jwt = require('jsonwebtoken');
 const { Usuario } = require('../models');
 
 const register = async (req, res) => {
-
     const { nombre, email, edad, password, rol } = req.body
 
     try {
@@ -29,13 +28,38 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     const { email, password } = req.body
 
+    console.log('=== LOGIN ATTEMPT ===');
+    console.log('Email recibido:', email);
+    console.log('Password recibido:', password);
+
     try {
         const userExist = await Usuario.findOne({ where: { email } })
-        if (!userExist) return res.status(400).json({ message: 'Usuario no encontrado' })
+        console.log('Usuario encontrado:', userExist ? 'SÍ' : 'NO');
+        
+        if (!userExist) {
+            console.log('Usuario no encontrado');
+            return res.status(400).json({ message: 'Usuario no encontrado' })
+        }
 
+        console.log('Usuario en DB:', {
+            id: userExist.id,
+            nombre: userExist.nombre,
+            email: userExist.email,
+            rol: userExist.rol
+        });
+        console.log('Password en DB:', userExist.password);
+        console.log('Password recibido:', password);
+        
         const validPassword = await bcrypt.compare(password, userExist.password)
-        if (!validPassword) return res.status(403).json({ message: 'Contraseña incorrecta' })
+        console.log('¿Contraseñas coinciden?', validPassword);
+        
+        if (!validPassword) {
+            console.log('Contraseña incorrecta - Login fallido');
+            return res.status(403).json({ message: 'Contraseña incorrecta' })
+        }
 
+        console.log('Login exitoso, generando token...');
+        
         const user = {
             id: userExist.id,
             nombre: userExist.nombre,
@@ -45,10 +69,11 @@ const login = async (req, res) => {
         }
 
         const token = jwt.sign({ user: user }, 'secreto1234', { expiresIn: '1h' })
-
+        console.log('Token generado exitosamente');
 
         res.json({ message: 'Inicio de sesion exitoso', token })
     } catch (error) {
+        console.error('Error en login:', error);
         res.status(500).json({ status: 500, message: 'Error al loguear el usuario', error: error.message });
     }
 }

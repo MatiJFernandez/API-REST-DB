@@ -2,19 +2,20 @@ const { Venta, Usuario, Producto } = require('../models')
 
 const getAllSales = async (req, res) => {
     try {
-        const ventas = await Venta.findAll({
-            attributes: ['id', 'cantidad', 'total', 'fecha'],
-            include: [
-                {
-                    model: Usuario,
-                    attributes: ['nombre', 'email']
-                },
-                {
-                    model: Producto,
-                    attributes: ['nombre', 'precio']
-                }
-            ]
-        })
+        let ventas;
+        
+        if (req.user.user.rol === 'admin') {
+            // Admin ve todas las ventas
+            ventas = await Venta.findAll({
+                include: [Usuario, Producto]
+            });
+        } else {
+            // Cliente ve solo sus ventas
+            ventas = await Venta.findAll({
+                where: { usuarioId: req.user.user.id },
+                include: [Usuario, Producto]
+            });
+        }
 
         res.json({ status: 200, data: ventas, message: 'Ventas obtenidas exitosamente' })
     } catch (error) {
@@ -22,14 +23,19 @@ const getAllSales = async (req, res) => {
     }
 }
 
-
 const getSaleById = async (req, res) => {
     try {
         const sale = await Venta.findByPk(req.params.id, {
             include: [Usuario, Producto]
-        })
+        });
 
-        if (!sale) return res.status(404).json({ message: 'Venta no encontrada' })
+        if (!sale) return res.status(404).json({ message: 'Venta no encontrada' });
+        
+        // Cliente solo puede ver su venta
+        if (req.user.user.rol !== 'admin' && sale.usuarioId !== req.user.user.id) {
+            return res.status(403).json({ message: 'Acceso denegado' });
+        }
+
         res.json({ status: 200, data: sale, message: 'Venta obtenida exitosamente' })
     } catch (error) {
         res.status(500).json({ message: 'Hubo un error al obtener la venta solicitada', error: error })
@@ -41,6 +47,11 @@ const createSale = async (req, res) => {
     try {
         if (!usuarioId || !productoId || !cantidad || !total || !fecha) {
             return res.status(400).json({ message: 'Faltan campos obligatorios' })
+        }
+
+        // Cliente solo puede crear ventas para sí mismo
+        if (req.user.user.rol !== 'admin' && usuarioId !== req.user.user.id) {
+            return res.status(403).json({ message: 'Solo puedes crear ventas para tu cuenta' });
         }
 
         const newSale = await Venta.create({ usuarioId, productoId, cantidad, total, fecha })
@@ -82,7 +93,6 @@ const deleteSale = async (req, res) => {
         res.status(500).json({ message: 'Hubo un error al eliminar la venta', error: error })
     }
 }
-
 
 module.exports = {
     getAllSales,

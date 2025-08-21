@@ -7,13 +7,18 @@ const {
     updateProduct,
     deleteProduct
 } = require('../controllers/products.controller')
-const verifyToken = require('../middlewares/verifyToken')
-const isAdmin = require('../middlewares/isAdmin')
 
-router.get('/', verifyToken, getProducts)
+//Importar middlewares
+const verifyToken = require('../middlewares/verifyToken');
+const isAdmin = require('../middlewares/isAdmin');
+
+//Todos pueden ver los productos
+router.get('/', getProducts)
 router.get('/:id', getProductById)
+
+//Solo admin puede crear, actualizar y eliminar
 router.post('/', verifyToken, isAdmin, createProduct)
-router.put('/:id', updateProduct)
-router.delete('/:id', deleteProduct)
+router.put('/:id', verifyToken, isAdmin, updateProduct)
+router.delete('/:id', verifyToken, isAdmin, deleteProduct)
 
 module.exports = router

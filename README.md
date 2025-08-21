@@ -13,7 +13,7 @@ Actualmente incluye endpoints para usuarios y productos.
 - Tener instalado Node.js (versión recomendada LTS)
 - Tener instalado MySQL y un servidor corriendo (por ejemplo, XAMPP, MAMP, WAMP, MySQL Workbench, etc.)
 
-## Instalación
+## Instalación  
 
 1. Clona este repositorio o descarga el ZIP:
 

@@ -46,16 +46,37 @@ const updateUsuario = async (req, res) => {
             return res.status(404).json({ status: 404, message: 'Usuario no encontrado' });
         }
 
-        const { nombre, email, edad } = req.body;
-        usuario.nombre = nombre || usuario.nombre;
-        usuario.email = email || usuario.email;
-        usuario.edad = edad || usuario.edad;
+        // Permitir editar todos los campos, incluyendo el rol
+        const { nombre, email, edad, password, rol } = req.body;
+        
+        // Solo admins pueden cambiar roles
+        if (rol && req.user.user.rol !== 'admin') {
+            return res.status(403).json({ 
+                status: 403, 
+                message: 'Solo los administradores pueden cambiar roles' 
+            });
+        }
+
+        // Actualizar campos si están presentes
+        if (nombre !== undefined) usuario.nombre = nombre;
+        if (email !== undefined) usuario.email = email;
+        if (edad !== undefined) usuario.edad = edad;
+        if (password !== undefined) usuario.password = password;
+        if (rol !== undefined) usuario.rol = rol;
 
         await usuario.save();
 
-        res.status(200).json({ status: 200, message: 'Usuario editado exitosamente', data: usuario });
+        res.status(200).json({ 
+            status: 200, 
+            message: 'Usuario editado exitosamente', 
+            data: usuario 
+        });
     } catch (error) {
-        res.status(500).json({ status: 500, message: 'Error al editar usuario', error: error.message });
+        res.status(500).json({ 
+            status: 500, 
+            message: 'Error al editar usuario', 
+            error: error.message 
+        });
     }
 };
 

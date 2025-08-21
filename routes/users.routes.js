@@ -8,10 +8,15 @@ const {
     deleteUsuario
 } = require('../controllers/users.controller');
 
-router.get('/', getUsuarios);
-router.get('/:id', getUsuarioById);
-router.post('/', createUsuario);
-router.put('/:id', updateUsuario);
-router.delete('/:id', deleteUsuario);
+//Importar middlewares
+const verifyToken = require('../middlewares/verifyToken');
+const isAdmin = require('../middlewares/isAdmin');
+
+// Solo admins (gestión de usuarios)
+router.get('/', verifyToken, isAdmin, getUsuarios);
+router.get('/:id', verifyToken, isAdmin, getUsuarioById);
+router.post('/', verifyToken, isAdmin, createUsuario);
+router.put('/:id', verifyToken, isAdmin, updateUsuario);
+router.delete('/:id', verifyToken, isAdmin, deleteUsuario);
 
 module.exports = router;
