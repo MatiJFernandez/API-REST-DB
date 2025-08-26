@@ -22,15 +22,27 @@ const getProductById = async (req, res) => {
 }
 
 const createProduct = async (req, res) => {
+    console.log('=== CREAR PRODUCTO ===');
+    console.log('Body recibido:', req.body);
+    console.log('Headers:', req.headers);
+    console.log('Usuario autenticado:', req.user);
+    
     const { nombre, precio } = req.body
+    
     try {
         if (!nombre || !precio) {
+            console.log('Faltan datos obligatorios');
             return res.status(400).json({ message: 'Faltan datos obligatorios' })
         }
+        
+        console.log('Datos validados, creando producto...');
         const nuevoProducto = await Producto.create({ nombre, precio })
+        console.log('Producto creado exitosamente:', nuevoProducto);
+        
         res.json({ status: 201, data: nuevoProducto, message: 'Producto creado exitosamente' })
     } catch (error) {
-        res.status(500).json({ message: 'Hubo un error al crear el producto' })
+        console.error('Error al crear producto:', error);
+        res.status(500).json({ message: 'Hubo un error al crear el producto', error: error.message })
     }
 }
 
